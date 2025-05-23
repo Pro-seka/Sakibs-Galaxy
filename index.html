@@ -73,16 +73,6 @@
             text-shadow: 0 0 10px #4a6fe8;
             margin-bottom: 20px;
         }
-        .upgrade {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            background: rgba(0, 0, 50, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #4a6fe8;
-            max-width: 300px;
-        }
     </style>
 </head>
 <body>
@@ -115,6 +105,90 @@
         const BULLET_SPEED = 10;
         const ENEMY_SPAWN_RATE = 60;
         const POWERUP_SPAWN_RATE = 500;
+
+        // Enhanced Sound Effects System
+        const soundEnabled = true;
+        let audioContext;
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.warn("Web Audio API not supported");
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const sounds = {
+                'shoot': { 
+                    freq: 600,        // Lower frequency
+                    duration: 0.08,   // Shorter duration
+                    type: 'sine',     // Softer wave type
+                    volume: 0.2,      // Lower volume
+                    fade: 0.05        // Quick fade out
+                },
+                'explosion': { 
+                    freq: 80, 
+                    duration: 0.4, 
+                    type: 'sine', 
+                    volume: 0.3,
+                    fade: 0.3
+                },
+                'hit': { 
+                    freq: 200, 
+                    duration: 0.15, 
+                    type: 'sine', 
+                    volume: 0.15,
+                    fade: 0.1
+                },
+                'powerup': { 
+                    freq: 800, 
+                    duration: 0.25, 
+                    type: 'triangle', 
+                    volume: 0.25,
+                    freqEnd: 1200,    // Rising pitch
+                    fade: 0.2
+                }
+            };
+            
+            const sound = sounds[type];
+            if (!sound) return;
+
+            const now = audioContext.currentTime;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = sound.type;
+            oscillator.frequency.setValueAtTime(sound.freq, now);
+            
+            // Add pitch variation for more natural sounds
+            if (type === 'shoot') {
+                oscillator.frequency.exponentialRampToValueAtTime(
+                    sound.freq * 0.7, 
+                    now + sound.duration
+                );
+            }
+            if (sound.freqEnd) {
+                oscillator.frequency.exponentialRampToValueAtTime(
+                    sound.freqEnd, 
+                    now + sound.duration
+                );
+            }
+            
+            gainNode.gain.setValueAtTime(sound.volume, now);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.001, 
+                now + sound.duration
+            );
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start(now);
+            oscillator.stop(now + sound.duration);
+        }
 
         // Game Variables
         let canvas, ctx;
@@ -205,38 +279,10 @@
 
         // Enemy Types
         const enemyTypes = [
-            { // Basic enemy
-                color: '#ff5555',
-                size: 30,
-                health: 30,
-                speed: 2,
-                score: 50,
-                behavior: 'straight'
-            },
-            { // Fast enemy
-                color: '#ffaa00',
-                size: 25,
-                health: 20,
-                speed: 3.5,
-                score: 75,
-                behavior: 'zigzag'
-            },
-            { // Tank enemy
-                color: '#aa0000',
-                size: 40,
-                health: 80,
-                speed: 1.5,
-                score: 150,
-                behavior: 'straight'
-            },
-            { // Boss enemy
-                color: '#ff00ff',
-                size: 60,
-                health: 200,
-                speed: 1,
-                score: 500,
-                behavior: 'homing'
-            }
+            { color: '#ff5555', size: 30, health: 30, speed: 2, score: 50, behavior: 'straight' },
+            { color: '#ffaa00', size: 25, health: 20, speed: 3.5, score: 75, behavior: 'zigzag' },
+            { color: '#aa0000', size: 40, health: 80, speed: 1.5, score: 150, behavior: 'straight' },
+            { color: '#ff00ff', size: 60, health: 200, speed: 1, score: 500, behavior: 'homing' }
         ];
 
         // Power-up Types
@@ -261,6 +307,15 @@
             
             document.getElementById('startButton').addEventListener('click', startGame);
             document.getElementById('restartButton').addEventListener('click', restartGame);
+            
+            // Initialize audio on first click
+            document.addEventListener('click', () => {
+                if (!audioContext) {
+                    initAudio();
+                    // Play a gentle test sound
+                    playSound('powerup');
+                }
+            }, { once: true });
             
             // Hide cursor
             canvas.style.cursor = 'none';
@@ -413,38 +468,27 @@
                     break;
             }
             
-            // Choose enemy type (higher chance for stronger enemies as level increases)
+            // Choose enemy type
             let typeIndex = 0;
             const r = Math.random();
             
-            if (level > 10 && r < 0.05) {
-                typeIndex = 3; // Boss
-            } else if (level > 5 && r < 0.3) {
-                typeIndex = 2; // Tank
-            } else if (level > 3 && r < 0.5) {
-                typeIndex = 1; // Fast
-            }
+            if (level > 10 && r < 0.05) typeIndex = 3;
+            else if (level > 5 && r < 0.3) typeIndex = 2;
+            else if (level > 3 && r < 0.5) typeIndex = 1;
             
             const type = enemyTypes[typeIndex];
             
             enemies.push({
-                x: x,
-                y: y,
-                width: type.size,
-                height: type.size,
-                color: type.color,
-                health: type.health,
-                maxHealth: type.health,
-                speed: type.speed,
-                score: type.score,
-                behavior: type.behavior,
+                x: x, y: y,
+                width: type.size, height: type.size,
+                color: type.color, health: type.health,
+                maxHealth: type.health, speed: type.speed,
+                score: type.score, behavior: type.behavior,
                 angle: Math.random() * Math.PI * 2,
                 zigzagCounter: 0,
                 draw() {
                     ctx.save();
                     ctx.fillStyle = this.color;
-                    
-                    // Draw enemy ship
                     ctx.beginPath();
                     ctx.moveTo(this.x, this.y + this.height/2);
                     ctx.lineTo(this.x + this.width/2, this.y - this.height/2);
@@ -452,7 +496,6 @@
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Draw health bar
                     if (this.health < this.maxHealth) {
                         const healthPercent = this.health / this.maxHealth;
                         ctx.fillStyle = 'red';
@@ -460,30 +503,23 @@
                         ctx.fillStyle = 'lime';
                         ctx.fillRect(this.x - this.width/2, this.y - this.height/2 - 10, this.width * healthPercent, 3);
                     }
-                    
                     ctx.restore();
                 },
                 update() {
-                    // Different behaviors
                     switch (this.behavior) {
                         case 'straight':
-                            // Move toward player
                             const angle = Math.atan2(player.y - this.y, player.x - this.x);
                             this.x += Math.cos(angle) * this.speed;
                             this.y += Math.sin(angle) * this.speed;
                             break;
-                            
                         case 'zigzag':
-                            // Zigzag movement
                             this.zigzagCounter += 0.1;
                             const baseAngle = Math.atan2(player.y - this.y, player.x - this.x);
                             this.angle = baseAngle + Math.sin(this.zigzagCounter) * 0.5;
                             this.x += Math.cos(this.angle) * this.speed;
                             this.y += Math.sin(this.angle) * this.speed;
                             break;
-                            
                         case 'homing':
-                            // Homing with occasional direction changes
                             if (Math.random() < 0.02) {
                                 this.angle = Math.atan2(player.y - this.y, player.x - this.x);
                             }
@@ -509,8 +545,6 @@
                     ctx.save();
                     ctx.fillStyle = this.color;
                     ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
-                    
-                    // Add glow effect
                     ctx.beginPath();
                     ctx.arc(this.x, this.y + this.height, this.width, 0, Math.PI * 2);
                     ctx.fillStyle = 'white';
@@ -523,7 +557,6 @@
                 }
             });
             
-            // Play shoot sound
             playSound('shoot');
         }
 
@@ -543,15 +576,12 @@
                     ctx.save();
                     ctx.fillStyle = this.color;
                     
-                    // Draw different shapes for different power-ups
                     switch (this.type) {
                         case 'health':
-                            // Plus sign
                             ctx.fillRect(this.x - this.width/3, this.y - this.width/2, this.width/1.5, this.width);
                             ctx.fillRect(this.x - this.width/2, this.y - this.width/3, this.width, this.width/1.5);
                             break;
                         case 'fireRate':
-                            // Lightning bolt
                             ctx.beginPath();
                             ctx.moveTo(this.x, this.y - this.width/2);
                             ctx.lineTo(this.x + this.width/3, this.y);
@@ -561,18 +591,15 @@
                             ctx.fill();
                             break;
                         case 'damage':
-                            // Star
                             drawStar(this.x, this.y, 5, this.width/2, this.width/4);
                             break;
                         case 'speed':
-                            // Boot
                             ctx.beginPath();
                             ctx.arc(this.x, this.y, this.width/2, 0, Math.PI * 2);
                             ctx.fill();
                             break;
                     }
                     
-                    // Add pulsing glow
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, this.width/2 + Math.sin(frameCount * 0.1) * 2, 0, Math.PI * 2);
                     ctx.strokeStyle = this.color;
@@ -581,7 +608,6 @@
                     ctx.restore();
                 },
                 update() {
-                    // Rotate slightly
                     return false;
                 }
             });
@@ -635,7 +661,6 @@
                 enemy.update();
                 enemy.draw();
                 
-                // Remove if out of bounds
                 if (enemy.x < -100 || enemy.x > CANVAS_WIDTH + 100 || 
                     enemy.y < -100 || enemy.y > CANVAS_HEIGHT + 100) {
                     enemies.splice(i, 1);
@@ -658,8 +683,7 @@
                 const speed = Math.random() * 3 + 1;
                 
                 particles.push({
-                    x: x,
-                    y: y,
+                    x: x, y: y,
                     size: Math.random() * 4 + 2,
                     color: color,
                     speedX: Math.cos(angle) * speed,
@@ -708,35 +732,20 @@
                     const enemy = enemies[j];
                     
                     if (checkCollision(bullet, enemy)) {
-                        // Damage enemy
                         enemy.health -= bullet.damage;
-                        
-                        // Create hit particles
                         createParticles(bullet.x, bullet.y, enemy.color, 5);
-                        
-                        // Remove bullet
                         bullets.splice(i, 1);
                         
-                        // Check if enemy died
                         if (enemy.health <= 0) {
-                            // Add score
                             score += enemy.score;
-                            
-                            // Create explosion
                             createParticles(enemy.x, enemy.y, enemy.color, 20);
-                            
-                            // Play explosion sound
                             playSound('explosion');
-                            
-                            // Remove enemy
                             enemies.splice(j, 1);
                             
-                            // Chance to spawn power-up
                             if (Math.random() < 0.2) {
                                 spawnPowerUp();
                             }
                         }
-                        
                         break;
                     }
                 }
@@ -747,19 +756,11 @@
                 const enemy = enemies[i];
                 
                 if (checkCollision(player, enemy)) {
-                    // Damage player
                     playerHealth -= 10 + level;
-                    
-                    // Create explosion
                     createParticles(enemy.x, enemy.y, enemy.color, 15);
-                    
-                    // Play hit sound
                     playSound('hit');
-                    
-                    // Remove enemy
                     enemies.splice(i, 1);
                     
-                    // Check if player died
                     if (playerHealth <= 0) {
                         gameOver();
                         return;
@@ -772,13 +773,8 @@
                 const powerUp = powerUps[i];
                 
                 if (checkCollision(player, powerUp)) {
-                    // Apply power-up
                     applyPowerUp(powerUp);
-                    
-                    // Play power-up sound
                     playSound('powerup');
-                    
-                    // Remove power-up
                     powerUps.splice(i, 1);
                 }
             }
@@ -808,8 +804,6 @@
                     playerStats.speed += powerUp.value;
                     break;
             }
-            
-            // Create pickup effect
             createParticles(powerUp.x, powerUp.y, powerUp.color, 15);
         }
 
@@ -818,40 +812,6 @@
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
             document.getElementById('health').textContent = playerHealth;
-        }
-
-        // Sound Effects
-        function playSound(type) {
-            // In a real game, you would use the Web Audio API or preloaded sounds
-            // This is a simplified version
-            try {
-                const sounds = {
-                    'shoot': { freq: 800, duration: 0.1, type: 'square' },
-                    'explosion': { freq: 100, duration: 0.5, type: 'sawtooth' },
-                    'hit': { freq: 300, duration: 0.2, type: 'sine' },
-                    'powerup': { freq: 1200, duration: 0.3, type: 'triangle' }
-                };
-                
-                const sound = sounds[type];
-                if (!sound) return;
-                
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.type = sound.type;
-                oscillator.frequency.value = sound.freq;
-                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + sound.duration);
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + sound.duration);
-            } catch (e) {
-                console.log("Audio error:", e);
-            }
         }
 
         // Initialize the game when the page loads

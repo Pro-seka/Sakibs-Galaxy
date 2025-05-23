@@ -67,6 +67,13 @@
             transform: scale(1.1);
             box-shadow: 0 0 20px #4a6fe8;
         }
+        .beast-mode {
+            background: linear-gradient(to bottom, #e84a5f, #8f1a2a);
+            box-shadow: 0 0 10px #e84a5f;
+        }
+        .beast-mode:hover {
+            box-shadow: 0 0 20px #e84a5f;
+        }
         h1 {
             font-size: 48px;
             color: #4a6fe8;
@@ -82,12 +89,14 @@
             <div>Score: <span id="score">0</span></div>
             <div>Level: <span id="level">1</span></div>
             <div>Health: <span id="health">100</span></div>
+            <div>Mode: <span id="mode">NORMAL</span></div>
         </div>
 
         <div id="startScreen">
             <h1>Sakib's Galaxy</h1>
             <p>Use WASD or Arrow Keys to move | SPACE to shoot | Collect power-ups</p>
             <button id="startButton">START MISSION</button>
+            <button id="beastModeButton" class="beast-mode">BEAST MODE</button>
         </div>
 
         <div id="gameOver">
@@ -206,6 +215,7 @@
         let frameCount = 0;
         let enemySpawnRate = ENEMY_SPAWN_RATE;
         let gameTime = 0;
+        let beastMode = false;
 
         // Player Stats
         let playerStats = {
@@ -272,6 +282,9 @@
                 // Shooting
                 if ((keys[' '] || keys['Spacebar']) && frameCount - playerStats.lastShot >= playerStats.fireRate) {
                     shootBullet();
+                    if (beastMode) {
+                        shootSideBullets();
+                    }
                     playerStats.lastShot = frameCount;
                 }
             }
@@ -305,7 +318,14 @@
             document.addEventListener('keydown', (e) => keys[e.key] = true);
             document.addEventListener('keyup', (e) => keys[e.key] = false);
             
-            document.getElementById('startButton').addEventListener('click', startGame);
+            document.getElementById('startButton').addEventListener('click', () => {
+                beastMode = false;
+                startGame();
+            });
+            document.getElementById('beastModeButton').addEventListener('click', () => {
+                beastMode = true;
+                startGame();
+            });
             document.getElementById('restartButton').addEventListener('click', restartGame);
             
             // Initialize audio on first click
@@ -560,6 +580,61 @@
             playSound('shoot');
         }
 
+        // Shoot Side Bullets (for Beast Mode)
+        function shootSideBullets() {
+            // Left bullet
+            bullets.push({
+                x: player.x - player.width/2,
+                y: player.y,
+                width: playerStats.bulletSize,
+                height: playerStats.bulletSize * 2,
+                color: '#ff5555',
+                speed: BULLET_SPEED,
+                damage: playerStats.bulletDamage,
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y + this.height, this.width, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                    ctx.restore();
+                },
+                update() {
+                    this.x -= this.speed * 0.7;
+                    this.y -= this.speed * 0.7;
+                    return this.y < -this.height || this.x < -this.width;
+                }
+            });
+            
+            // Right bullet
+            bullets.push({
+                x: player.x + player.width/2,
+                y: player.y,
+                width: playerStats.bulletSize,
+                height: playerStats.bulletSize * 2,
+                color: '#ff5555',
+                speed: BULLET_SPEED,
+                damage: playerStats.bulletDamage,
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y + this.height, this.width, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                    ctx.restore();
+                },
+                update() {
+                    this.x += this.speed * 0.7;
+                    this.y -= this.speed * 0.7;
+                    return this.y < -this.height || this.x > CANVAS_WIDTH + this.width;
+                }
+            });
+        }
+
         // Spawn Power-up
         function spawnPowerUp() {
             const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
@@ -812,6 +887,7 @@
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
             document.getElementById('health').textContent = playerHealth;
+            document.getElementById('mode').textContent = beastMode ? "BEAST MODE" : "NORMAL";
         }
 
         // Initialize the game when the page loads

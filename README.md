@@ -8,3 +8,9 @@ Play the game now 👉 [Click Here to Play](https://pro-seka.github.io/Sakibs-Ga
 - **Move**: WASD or Arrow Keys  
 - **Shoot**: Spacebar  
 - **Goal**: Survive waves of enemies and collect power-ups!
+
+## 🔥 Power Attributes
+🟢 Green – Health
+🔵 Blue – Speed
+🟡 Yellow – Fire Rate
+🔴 Red – Damage

@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    touch-action: none;
+}
+#gameContainer {
+    position: relative;
+    display: inline-block;
+}
+#gameCanvas {
+    display: block;
+    background: radial-gradient(ellipse at center, #0a0e24 0%, #000000 100%);
+    margin: 0 auto;
+}
+#ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    text-shadow: 0 0 5px #00f, 0 0 10px #00f;
+}
+#gameOver, #startScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 100;
+}
+#gameOver {
+    display: none;
+}
+button {
+    background: linear-gradient(to bottom, #4a6fe8, #1a3a8f);
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #4a6fe8;
+    transition: all 0.3s;
+}
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #4a6fe8;
+}
+.beast-mode {
+    background: linear-gradient(to bottom, #e84a5f, #8f1a2a);
+    box-shadow: 0 0 10px #e84a5f;
+}
+.beast-mode:hover {
+    box-shadow: 0 0 20px #e84a5f;
+}
+h1 {
+    font-size: 48px;
+    color: #4a6fe8;
+    text-shadow: 0 0 10px #4a6fe8;
+    margin-bottom: 20px;
+}
+
+/* Mobile Controls */
+#mobileControls {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    display: none;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 200;
+    touch-action: none;
+}
+
+#leftControl {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 60px;
+    position: relative;
+    touch-action: none;
+}
+
+#joystick {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    touch-action: none;
+}
+
+#fireButton {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 0, 0, 0.5);
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    user-select: none;
+    touch-action: none;
+}
+
+@media (max-width: 768px) {
+    #mobileControls {
+        display: flex;
+    }
+    #startScreen p {
+        font-size: 14px;
+        padding: 0 20px;
+        text-align: center;
+    }
+    #mobileInstructions {
+        display: block !important;
+        margin-bottom: 20px;
+    }
+}

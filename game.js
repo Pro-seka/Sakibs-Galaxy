@@ -422,7 +422,7 @@ function gameLoop() {
     // Check if we should transition to level 2
     if (score >= 1000 && currentLevelType === 1) {
         currentLevelType = 2;
-        level = RIP; // Start level 2 at level 11 to indicate higher difficulty
+        level = 404; // Start level 2 at level 11 to indicate higher difficulty
         enemySpawnRate = Math.max(5, ENEMY_SPAWN_RATE - 30); // Faster spawn rate for level 2
     }
     
@@ -808,7 +808,7 @@ function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
         ctx.lineTo(x, y);
         rot += step;
 
-        x = cx + Math.cos(rot) * innerRadius;
+                x = cx + Math.cos(rot) * innerRadius;
         y = cy + Math.sin(rot) * innerRadius;
         ctx.lineTo(x, y);
         rot += step;
@@ -1006,5 +1006,5 @@ function updateUI() {
     }
 }
 
-// Initialize the game when the window loads
+// Initialize the game when the page loads
 window.onload = init;

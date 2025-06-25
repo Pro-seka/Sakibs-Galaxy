@@ -933,16 +933,16 @@ function checkCollisions() {
         const enemy = enemies[i];
         
         if (checkCollision(player, enemy)) {
-            playerHealth -= 10 + level;
-            createParticles(enemy.x, enemy.y, enemy.color, 15);
-            playSound('hit');
-            enemies.splice(i, 1);
-            
-            if (playerHealth <= 0) {
-                gameOver();
-                return;
-            }
-        }
+    playerHealth -= Math.min(20, 10 + level); // Never more than 20 damage
+    createParticles(enemy.x, enemy.y, enemy.color, 15);
+    playSound('hit');
+    enemies.splice(i, 1);
+    
+    if (playerHealth <= 0) {
+        gameOver();
+        return;
+    }
+}
     }
     
     for (let i = powerUps.length - 1; i >= 0; i--) {

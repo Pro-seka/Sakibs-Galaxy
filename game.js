@@ -422,7 +422,7 @@ function gameLoop() {
     // Check if we should transition to level 2
     if (score >= 1000 && currentLevelType === 1) {
         currentLevelType = 2;
-        level = 404; // Start level 2 at level 11 to indicate higher difficulty
+        level = 11; // Start level 2 at level 11 to indicate higher difficulty
         enemySpawnRate = Math.max(5, ENEMY_SPAWN_RATE - 30); // Faster spawn rate for level 2
     }
     

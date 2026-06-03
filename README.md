@@ -1,6 +1,6 @@
-# 🌌 Sakib's Galaxy  
+# Sakib's Galaxy  
 
-🚀 *A cosmic shooter game built with HTML, CSS & JavaScript*
+*A cosmic shooter game built with HTML, CSS & JavaScript*
 
 Play the game now 👉 [Click Here to Play](https://pro-seka.github.io/Sakibs-Galaxy/)
 

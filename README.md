@@ -4,6 +4,8 @@
 
 Play the game now 👉 [Click Here to Play](https://pro-seka.github.io/Sakibs-Galaxy/)
 
+[Click here for a quick tour](https://youtu.be/m0abuyDc8cw?si=5glzKVeUrvKoe1sC)
+
 ## Dare to cross 1000 scores?
 1000 is not just a number!
 It's a portal.<br>
